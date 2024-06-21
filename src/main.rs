@@ -8,7 +8,7 @@ use modules::parser::Lexer;
 fn main() -> Result<()> {
     let file = File::open("Encounter.log").unwrap();
     let mapped_file = unsafe { Mmap::map(&file).unwrap() };
-    let file_size = mapped_file.len();
+    let _file_size = mapped_file.len();
     let mut lexer = Lexer::new(mapped_file.lines());
     while let Some(segment) = lexer.next_segment(){
     println!("{segment:#?}");

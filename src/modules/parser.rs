@@ -1,12 +1,7 @@
-use std::{
-    io::{BufRead, Lines},
-    path::PathBuf,
-    sync::Arc,
-};
-
-use memmap::Mmap;
+use std::{io::Lines, path::PathBuf, str::Split, sync::Arc};
 
 //<unitState> refers to the following fields for a unit: unitId, health/max, magicka/max, stamina/max, ultimate/max, werewolf/max, shield, map NX, map NY, headingRadians.
+#[derive(Debug)]
 pub struct UnitState {
     unit_id: usize,
     health: (usize, usize),
@@ -16,13 +11,14 @@ pub struct UnitState {
     werewolf: (u16, u16),
     shield: usize,
     position: (f32, f32),
-    heading: Option<f32>,
+    heading: f32,
 }
 
 //<targetUnitState> is replaced with an asterisk if the source and target are the same.
 pub type TargetUnitState = UnitState;
 
 //<equipmentInfo> refers to the following fields for a piece of equipment: slot, id, isCP, level, trait, displayQuality, setId, enchantType, isEnchantCP, enchantLevel, enchantQuality.
+#[derive(Debug)]
 pub struct Equipment {
     head: Option<EquipmentInfo<ArmorTrait>>,
     shoulders: Option<EquipmentInfo<ArmorTrait>>,
@@ -38,6 +34,7 @@ pub struct Equipment {
     backup: Option<WeaponHand>,
 }
 
+#[derive(Debug)]
 pub enum WeaponHand {
     OneHand(
         Option<EquipmentInfo<WeaponTrait>>,
@@ -46,11 +43,13 @@ pub enum WeaponHand {
     TwoHand(Option<EquipmentInfo<WeaponTrait>>),
 }
 
+#[derive(Debug)]
 pub enum EquipmentLevel {
     NoCp(u8),
     Cp(u8),
 }
 
+#[derive(Debug)]
 pub enum ArmorTrait {
     Divines,
     Invigorating,
@@ -63,6 +62,7 @@ pub enum ArmorTrait {
     Training,
 }
 
+#[derive(Debug)]
 pub enum JewelTrait {
     Arcane,
     Health,
@@ -75,6 +75,7 @@ pub enum JewelTrait {
     Triune,
 }
 
+#[derive(Debug)]
 pub enum WeaponTrait {
     Charged,
     Defending,
@@ -92,8 +93,10 @@ impl r#TraitMarker for ArmorTrait {}
 impl r#TraitMarker for JewelTrait {}
 impl r#TraitMarker for WeaponTrait {}
 
+#[derive(Debug)]
 pub enum ArmorEnchant {}
 
+#[derive(Debug)]
 pub enum Quality {
     Normal,
     Fine,
@@ -102,6 +105,7 @@ pub enum Quality {
     Legendary,
 }
 
+#[derive(Debug)]
 pub struct EquipmentInfo<T>
 where
     T: TraitMarker,
@@ -125,11 +129,13 @@ pub struct BeginLog {
     game_version: Arc<str>,
 }
 
+#[derive(Debug)]
 pub struct Effect {
     ability_id: usize,
     stack_count: u8,
 }
 
+#[derive(Debug)]
 pub struct PlayerInfo {
     unit_id: usize,
     long_term_effect: Vec<Effect>,
@@ -138,15 +144,34 @@ pub struct PlayerInfo {
     backup_ability_id: [usize; 6],
 }
 
+#[derive(Debug)]
+pub enum Targets {
+    SelfTarget,
+    Target(UnitState),
+    None,
+}
+
+#[derive(Debug)]
 pub struct BeginCast {
     duration_ms: usize,
     channeled: bool,
     cast_track_id: usize,
     ability_id: usize,
     source: UnitState,
-    target: UnitState,
+    target: Targets,
 }
-// pub struct END_CAST{endReason, castTrackId, interruptingAbilityId:optional, interruptingUnitId:optional}
+
+#[derive(Debug)]
+pub enum EndReason {
+    Completed,
+}
+#[derive(Debug)]
+pub struct EndCast {
+    end_reason: EndReason,
+    cast_track_id: usize,
+    interrupting_ability_id: Option<usize>,
+    interrupting_unit_id: Option<usize>,
+}
 // pub struct COMBAT_EVENT{actionResult, damageType, powerType, hitValue, overflow, castTrackId, abilityId, <sourceUnitState>, <targetUnitState>}
 // pub struct HEALTH_REGEN{effectiveRegen, <unitState>}
 #[derive(Debug)]
@@ -208,8 +233,33 @@ pub struct AbilityInfo {
     interruptible: bool,
     blockable: bool,
 }
-// pub struct EFFECT_INFO{abilityId, effectType, statusEffectType, effectBarDisplayBehaviour, grantsSynergyAbilityId:optional}
-// pub struct MAP_INFO{id, name, texturePath}
+#[derive(Debug)]
+pub enum EffectType {
+    Buff,
+}
+
+#[derive(Debug)]
+pub enum StatusEffectType {
+    None,
+}
+#[derive(Debug)]
+pub enum EffectBarDisplayBehaviour {
+    Default,
+}
+#[derive(Debug)]
+pub struct EffectInfo {
+    ability_id: usize,
+    effect_type: EffectType,
+    status_effect_type: StatusEffectType,
+    effect_bar_display_behaviour: EffectBarDisplayBehaviour,
+    grants_synergy_ability_id: Option<usize>,
+}
+#[derive(Debug)]
+pub struct MapInfo {
+    id: usize,
+    name: Arc<str>,
+    texture_path: PathBuf,
+}
 #[derive(Debug)]
 pub enum DungeonDifficulty {
     Normal,
@@ -243,8 +293,8 @@ pub enum SegmentType {
     // BeginCombat,
     // EndCombat,
     // PlayerInfo(PlayerInfo),
-    // BeginCast,
-    // EndCast,
+    BeginCast(BeginCast),
+    EndCast(EndCast),
     // CombatEvent,
     // HealthRegen,
     UnitAdded(UnitAdded),
@@ -252,8 +302,8 @@ pub enum SegmentType {
     // UnitRemoved,
     // EffectChanged,
     AbilityInfo(AbilityInfo),
-    // EffectInfo,
-    // MapInfo,
+    EffectInfo(EffectInfo),
+    MapInfo(MapInfo),
     ZoneInfo(ZoneInfo),
     TrialInit(Trialinit),
     // BeginTrial,
@@ -311,6 +361,110 @@ impl Lexer {
             "2" => Race::Redguard,
             x => unimplemented!("{x} race is not implemented"),
         }
+    }
+    fn parse_source_unit(splits: &mut Split<'_, char>) -> UnitState {
+        let unit_id = splits.next().unwrap();
+        let mut health_ = splits.next().unwrap().split('/');
+        let health = (
+            health_.next().unwrap().parse().unwrap(),
+            health_.next().unwrap().parse().unwrap(),
+        );
+        let mut magicka_ = splits.next().unwrap().split('/');
+        let magicka = (
+            magicka_.next().unwrap().parse().unwrap(),
+            magicka_.next().unwrap().parse().unwrap(),
+        );
+        let mut stamina_ = splits.next().unwrap().split('/');
+        let stamina = (
+            stamina_.next().unwrap().parse().unwrap(),
+            stamina_.next().unwrap().parse().unwrap(),
+        );
+
+        let mut ultimate_ = splits.next().unwrap().split('/');
+        let ultimate = (
+            ultimate_.next().unwrap().parse().unwrap(),
+            ultimate_.next().unwrap().parse().unwrap(),
+        );
+
+        let mut werewolf_ = splits.next().unwrap().split('/');
+        let werewolf = (
+            werewolf_.next().unwrap().parse().unwrap(),
+            werewolf_.next().unwrap().parse().unwrap(),
+        );
+        let shield = splits.next().unwrap().parse().unwrap();
+        let position_ = splits.next().unwrap();
+        let position = (
+            position_.parse().unwrap(),
+            splits.next().unwrap().parse().unwrap(),
+        );
+        let heading = splits.next().unwrap().parse().unwrap();
+
+        UnitState {
+            unit_id: unit_id.parse().unwrap(),
+            health,
+            magicka,
+            stamina,
+            ultimate,
+            werewolf,
+            shield,
+            position,
+            heading,
+        }
+    }
+
+    fn parse_target_unit(splits: &mut Split<'_, char>) -> Targets {
+        let unit_id = splits.next().unwrap();
+        if unit_id == "0" {
+            return Targets::None;
+        } else if unit_id == "*" {
+            return Targets::SelfTarget;
+        }
+        let mut health_ = splits.next().unwrap().split('/');
+        let health = (
+            health_.next().unwrap().parse().unwrap(),
+            health_.next().unwrap().parse().unwrap(),
+        );
+        let mut magicka_ = splits.next().unwrap().split('/');
+        let magicka = (
+            magicka_.next().unwrap().parse().unwrap(),
+            magicka_.next().unwrap().parse().unwrap(),
+        );
+        let mut stamina_ = splits.next().unwrap().split('/');
+        let stamina = (
+            stamina_.next().unwrap().parse().unwrap(),
+            stamina_.next().unwrap().parse().unwrap(),
+        );
+
+        let mut ultimate_ = splits.next().unwrap().split('/');
+        let ultimate = (
+            ultimate_.next().unwrap().parse().unwrap(),
+            ultimate_.next().unwrap().parse().unwrap(),
+        );
+
+        let mut werewolf_ = splits.next().unwrap().split('/');
+        let werewolf = (
+            werewolf_.next().unwrap().parse().unwrap(),
+            werewolf_.next().unwrap().parse().unwrap(),
+        );
+        let shield = splits.next().unwrap().parse().unwrap();
+        let position_ = splits.next().unwrap();
+        let position = (
+            position_.parse().unwrap(),
+            splits.next().unwrap().parse().unwrap(),
+        );
+        let heading = splits.next().unwrap().parse().unwrap();
+
+        Targets::Target(UnitState {
+            unit_id: unit_id.parse().unwrap(),
+            health,
+            magicka,
+            stamina,
+            ultimate,
+            werewolf,
+            shield,
+            position,
+            heading,
+        })
     }
     pub fn next_segment(&mut self) -> Option<Segment> {
         let data = &self.data[self.current_line];
@@ -453,7 +607,93 @@ impl Lexer {
                     line,
                 })
             }
+            "MAP_CHANGED" => {
+                let mut remainder = split.next().unwrap().split(',');
+                let id = remainder.next().unwrap();
+                let name = remainder.next().unwrap();
+                let texture_path = remainder.next().unwrap();
+                let line = SegmentType::MapInfo(MapInfo {
+                    id: id.parse().unwrap(),
+                    name: name.replace('"', "").into(),
+                    texture_path: PathBuf::from(texture_path.replace('"', "")),
+                });
+                Some(Segment {
+                    time: time.parse().unwrap(),
+                    line,
+                })
+            }
+            "BEGIN_CAST" => {
+                let mut remainder = split.next().unwrap().split(',');
+                let duration_ms = remainder.next().unwrap();
+                let channeled = Self::parse_bool(remainder.next().unwrap());
+                let cast_track_id = remainder.next().unwrap();
+                let ability_id = remainder.next().unwrap();
+                let source = Self::parse_source_unit(&mut remainder);
+                let target = Self::parse_target_unit(&mut remainder);
 
+                let line = SegmentType::BeginCast(BeginCast {
+                    duration_ms: duration_ms.parse().unwrap(),
+                    channeled,
+                    cast_track_id: cast_track_id.parse().unwrap(),
+                    ability_id: ability_id.parse().unwrap(),
+                    source,
+                    target,
+                });
+                Some(Segment {
+                    time: time.parse().unwrap(),
+                    line,
+                })
+            }
+            "END_CAST" => {
+                let mut remainder = split.next().unwrap().split(',');
+                let end_reason = match remainder.next().unwrap() {
+                    "COMPLETED" => EndReason::Completed,
+                    x => unimplemented!("{x} End Reason is not implemented"),
+                };
+                let cast_track_id = remainder.next().unwrap().parse().unwrap();
+                let interrupting_ability_id = remainder.next().map(|f| f.parse().unwrap());
+                let interrupting_unit_id = remainder.next().map(|f| f.parse().unwrap());
+                let line = SegmentType::EndCast(EndCast {
+                    end_reason,
+                    cast_track_id,
+                    interrupting_ability_id,
+                    interrupting_unit_id,
+                });
+
+                Some(Segment {
+                    time: time.parse().unwrap(),
+                    line,
+                })
+            }
+            "EFFECT_INFO" => {
+                let mut remainder = split.next().unwrap().split(',');
+                let ability_id = remainder.next().unwrap().parse().unwrap();
+                let effect_type = match remainder.next().unwrap() {
+                    "BUFF" => EffectType::Buff,
+                    x => unimplemented!("{x} Effect Type is not implemented"),
+                };
+                let status_effect_type = match remainder.next().unwrap() {
+                    "NONE" => StatusEffectType::None,
+                    x => unimplemented!("{x} Status Effect Type is not implemented"),
+                };
+                let effect_bar_display_behaviour = match remainder.next().unwrap() {
+                    "DEFAULT" => EffectBarDisplayBehaviour::Default,
+                    x => unimplemented!("{x} Effect Bar Display behaviour is not implemented"),
+                };
+                let grants_synergy_ability_id = remainder.next().map(|f| f.parse().unwrap());
+
+                let line = SegmentType::EffectInfo(EffectInfo {
+                    ability_id,
+                    effect_type,
+                    status_effect_type,
+                    effect_bar_display_behaviour,
+                    grants_synergy_ability_id,
+                });
+                Some(Segment {
+                    time: time.parse().unwrap(),
+                    line,
+                })
+            }
             x => {
                 todo!("{x} is not implemented!(): {}", split.next().unwrap());
             }
