@@ -1,5 +1,6 @@
 use std::{
     io::{BufRead, Lines},
+    path::PathBuf,
     sync::Arc,
 };
 
@@ -198,7 +199,15 @@ pub struct UnitAdded {
 // pub struct UNIT_CHANGED{unitId, classId, raceId, name, displayName, characterId, level, championPoints, ownerUnitId, reaction, isGroupedWithLocalPlayer}
 // pub struct UNIT_REMOVED{unitId}
 // pub struct EFFECT_CHANGED{changeType, stackCount, castTrackId, abilityId, <sourceUnitState>, <targetUnitState>, playerInitiatedRemoveCastTrackId:optional}
-// pub struct ABILITY_INFO{abilityId, name, iconPath, interruptible, blockable}
+
+#[derive(Debug)]
+pub struct AbilityInfo {
+    ability_id: usize,
+    name: Arc<str>,
+    icon_path: PathBuf,
+    interruptible: bool,
+    blockable: bool,
+}
 // pub struct EFFECT_INFO{abilityId, effectType, statusEffectType, effectBarDisplayBehaviour, grantsSynergyAbilityId:optional}
 // pub struct MAP_INFO{id, name, texturePath}
 #[derive(Debug)]
@@ -213,7 +222,17 @@ pub struct ZoneInfo {
     name: Arc<str>,
     dungeon_difficulty: DungeonDifficulty,
 }
-// pub struct TRIAL_INIT{id, inProgress, completed, startTimeMS, durationMS, success, finalScore}
+
+#[derive(Debug)]
+pub struct Trialinit {
+    id: u8,
+    in_progress: bool,
+    completed: bool,
+    start_time_ms: usize,
+    duration_ms: usize,
+    success: bool,
+    final_score: usize,
+}
 // pub struct BEGIN_TRIAL{id, startTimeMS}
 // pub struct END_TRIAL{id, durationMS, success, finalScore, finalVitalityBonus }
 
@@ -232,11 +251,11 @@ pub enum SegmentType {
     // UnitChanged,
     // UnitRemoved,
     // EffectChanged,
-    // AbilityInfo,
+    AbilityInfo(AbilityInfo),
     // EffectInfo,
     // MapInfo,
     ZoneInfo(ZoneInfo),
-    TrialInit,
+    TrialInit(Trialinit),
     // BeginTrial,
     // EndTrial,
 }
@@ -254,7 +273,6 @@ pub struct Lexer {
 impl Lexer {
     pub fn new(data: Lines<&[u8]>) -> Lexer {
         Lexer {
-            // data: Box::new(data.lines().map(|l| l.unwrap().as_str().into())),
             data: data
                 .filter_map(|l| match l {
                     Ok(v) => Some(v.as_str().into()),
@@ -273,6 +291,27 @@ impl Lexer {
         }
     }
 
+    fn parse_class(d: &str) -> Class {
+        match d {
+            "117" => Class::Arcanist,
+            "6" => Class::Templar,
+            "1" => Class::DragonKnight,
+            "2" => Class::Sorcerer,
+            x => unimplemented!("{x} class is not implemented"),
+        }
+    }
+
+    fn parse_race(d: &str) -> Race {
+        match d {
+            "4" => Race::DarkElf,
+            "9" => Race::Khajit,
+            "7" => Race::HighElf,
+            "8" => Race::WoodElf,
+            "5" => Race::Nord,
+            "2" => Race::Redguard,
+            x => unimplemented!("{x} race is not implemented"),
+        }
+    }
     pub fn next_segment(&mut self) -> Option<Segment> {
         let data = &self.data[self.current_line];
         if data.is_empty() {
@@ -333,22 +372,8 @@ impl Lexer {
                 let player_per_session_id = remainder.next().unwrap();
                 let monster_id = remainder.next().unwrap();
                 let is_boss = Self::parse_bool(remainder.next().unwrap());
-                let class = match remainder.next().unwrap() {
-                    "117" => Class::Arcanist,
-                    "6" => Class::Templar,
-                    "1" => Class::DragonKnight,
-                    "2" => Class::Sorcerer,
-                    x => unimplemented!("{x} class is not implemented"),
-                };
-                let race = match remainder.next().unwrap() {
-                    "4" => Race::DarkElf,
-                    "9" => Race::Khajit,
-                    "7" => Race::HighElf,
-                    "8" => Race::WoodElf,
-                    "5" => Race::Nord,
-                    "2" => Race::Redguard,
-                    x => unimplemented!("{x} race is not implemented"),
-                };
+                let class = Self::parse_class(remainder.next().unwrap());
+                let race = Self::parse_race(remainder.next().unwrap());
                 let name = remainder.next().unwrap();
                 let display_name = remainder.next().unwrap();
                 let character_id = remainder.next().unwrap();
@@ -386,10 +411,47 @@ impl Lexer {
                 })
             }
             "TRIAL_INIT" => {
-                todo!(
-                    "TRIAL_INIT is not implemented!(): {}",
-                    split.next().unwrap()
-                );
+                let mut remainder = split.next().unwrap().split(',');
+                let id = remainder.next().unwrap();
+                let in_progress = Self::parse_bool(remainder.next().unwrap());
+                let completed = Self::parse_bool(remainder.next().unwrap());
+                let start_time_ms = remainder.next().unwrap();
+                let duration_ms = remainder.next().unwrap();
+                let success = Self::parse_bool(remainder.next().unwrap());
+                let final_score = remainder.next().unwrap();
+
+                let line = SegmentType::TrialInit(Trialinit {
+                    id: id.parse().unwrap(),
+                    in_progress,
+                    completed,
+                    start_time_ms: start_time_ms.parse().unwrap(),
+                    duration_ms: duration_ms.parse().unwrap(),
+                    success,
+                    final_score: final_score.parse().unwrap(),
+                });
+                Some(Segment {
+                    time: time.parse().unwrap(),
+                    line,
+                })
+            }
+            "ABILITY_INFO" => {
+                let mut remainder = split.next().unwrap().split(',');
+                let ability_id = remainder.next().unwrap();
+                let name = remainder.next().unwrap();
+                let icon_path = remainder.next().unwrap();
+                let interruptible = Self::parse_bool(remainder.next().unwrap());
+                let blockable = Self::parse_bool(remainder.next().unwrap());
+                let line = SegmentType::AbilityInfo(AbilityInfo {
+                    ability_id: ability_id.parse().unwrap(),
+                    name: name.replace('"', "").into(),
+                    icon_path: PathBuf::from(icon_path.replace('"', "")),
+                    interruptible,
+                    blockable,
+                });
+                Some(Segment {
+                    time: time.parse().unwrap(),
+                    line,
+                })
             }
 
             x => {
