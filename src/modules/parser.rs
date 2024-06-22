@@ -1,5 +1,5 @@
-use std::{collections::VecDeque, io::Lines, path::PathBuf, sync::Arc};
 use super::{abilities::*, combat::*, log::*, player::*};
+use std::{collections::VecDeque, io::Lines, path::PathBuf, sync::Arc};
 
 pub fn parse_bool(b: &str) -> bool {
     match b {
@@ -115,12 +115,7 @@ impl Lexer {
                 }
                 "UNIT_ADDED" => {
                     let unit_id = tokens.pop_front().unwrap();
-                    let unit_type = match tokens.pop_front().unwrap().as_str() {
-                        "PLAYER" => UnitType::Player,
-                        "MONSTER" => UnitType::Monster,
-                        "OBJECT" => UnitType::Object,
-                        x => unimplemented!("{x} Unit is not implemented"),
-                    };
+                    let unit_type = tokens.pop_front().unwrap().into();
                     let is_local_player = parse_bool(&tokens.pop_front().unwrap());
                     let player_per_session_id = tokens.pop_front().unwrap();
                     let monster_id = tokens.pop_front().unwrap();
@@ -133,15 +128,7 @@ impl Lexer {
                     let level = tokens.pop_front().unwrap();
                     let champion_points = tokens.pop_front().unwrap();
                     let owner_unit_id = tokens.pop_front().unwrap();
-                    let reaction = match tokens.pop_front().unwrap().as_str() {
-                        "PLAYER_ALLY" => PlayerReaction::PlayerAlly,
-                        "FRIENDLY" => PlayerReaction::Friendly,
-                        "COMPANION" => PlayerReaction::Companion,
-                        "NPC_ALLY" => PlayerReaction::NpcAlly,
-                        "NEUTRAL" => PlayerReaction::Neutral,
-                        "HOSTILE" => PlayerReaction::Hostile,
-                        x => unimplemented!("{x} Player Reaction not implemented"),
-                    };
+                    let reaction = tokens.pop_front().unwrap().into();
                     let is_grouped_with_local_player = parse_bool(&tokens.pop_front().unwrap());
 
                     SegmentType::UnitAdded(UnitAdded {
@@ -224,12 +211,7 @@ impl Lexer {
                     })
                 }
                 "END_CAST" => {
-                    let end_reason = match tokens.pop_front().unwrap().as_str() {
-                        "COMPLETED" => EndReason::Completed,
-                        "PLAYER_CANCELLED" => EndReason::PlayerCancelled,
-                        "INTERRUPTED" => EndReason::Interrupted,
-                        x => unimplemented!("{x} End Reason is not implemented"),
-                    };
+                    let end_reason = tokens.pop_front().unwrap().into();
                     let cast_track_id = tokens.pop_front().unwrap().parse().unwrap();
                     let interrupting_ability_id = tokens.pop_front().map(|f| f.parse().unwrap());
                     let interrupting_unit_id = tokens.pop_front().map(|f| f.parse().unwrap());
@@ -242,26 +224,9 @@ impl Lexer {
                 }
                 "EFFECT_INFO" => {
                     let ability_id = tokens.pop_front().unwrap().parse().unwrap();
-                    let effect_type = match tokens.pop_front().unwrap().as_str() {
-                        "BUFF" => EffectType::Buff,
-                        "DEBUFF" => EffectType::Debuff,
-                        x => unimplemented!("{x} Effect Type is not implemented"),
-                    };
-                    let status_effect_type = match tokens.pop_front().unwrap().as_str() {
-                        "NONE" => StatusEffectType::None,
-                        "MAGIC" => StatusEffectType::Magic,
-                        "SNARE" => StatusEffectType::Snare,
-                        "ROOT" => StatusEffectType::Root,
-                        "BLEED" => StatusEffectType::Bleed,
-                        "POISON" => StatusEffectType::Poison,
-                        "ENVIRONMENT" => StatusEffectType::Environment,
-                        x => unimplemented!("{x} Status Effect Type is not implemented"),
-                    };
-                    let effect_bar_display_behaviour = match tokens.pop_front().unwrap().as_str() {
-                        "DEFAULT" => EffectBarDisplayBehaviour::Default,
-                        "NEVER" => EffectBarDisplayBehaviour::Never,
-                        x => unimplemented!("{x} Effect Bar Display behaviour is not implemented"),
-                    };
+                    let effect_type = tokens.pop_front().unwrap().into();
+                    let status_effect_type = tokens.pop_front().unwrap().into();
+                    let effect_bar_display_behaviour = tokens.pop_front().unwrap().into();
                     let grants_synergy_ability_id = tokens.pop_front().map(|f| f.parse().unwrap());
 
                     SegmentType::EffectInfo(EffectInfo {
@@ -273,12 +238,7 @@ impl Lexer {
                     })
                 }
                 "EFFECT_CHANGED" => {
-                    let change_type = match tokens.pop_front().unwrap().as_str() {
-                        "FADED" => EffectChangeType::Faded,
-                        "GAINED" => EffectChangeType::Gained,
-                        "UPDATED" => EffectChangeType::Updated,
-                        x => unimplemented!("{x} Effect Change Type is not implemented"),
-                    };
+                    let change_type = tokens.pop_front().unwrap().into();
                     let stack_count = tokens.pop_front().unwrap().parse().unwrap();
                     let cast_track_id = tokens.pop_front().unwrap().parse().unwrap();
                     let ability_id = tokens.pop_front().unwrap().parse().unwrap();
@@ -342,15 +302,7 @@ impl Lexer {
                     let level = tokens.pop_front().unwrap();
                     let champion_points = tokens.pop_front().unwrap();
                     let owner_unit_id = tokens.pop_front().unwrap();
-                    let reaction = match tokens.pop_front().unwrap().as_str() {
-                        "PLAYER_ALLY" => PlayerReaction::PlayerAlly,
-                        "FRIENDLY" => PlayerReaction::Friendly,
-                        "COMPANION" => PlayerReaction::Companion,
-                        "NPC_ALLY" => PlayerReaction::NpcAlly,
-                        "NEUTRAL" => PlayerReaction::Neutral,
-                        "HOSTILE" => PlayerReaction::Hostile,
-                        x => unimplemented!("{x} Player Reaction not implemented"),
-                    };
+                    let reaction = tokens.pop_front().unwrap().into();
                     let is_grouped_with_local_player = parse_bool(&tokens.pop_front().unwrap());
 
                     SegmentType::UnitChanged(UnitChanged {
@@ -387,9 +339,7 @@ impl Lexer {
                         final_vitality_bonus,
                     })
                 }
-
                 "BEGIN_COMBAT" => SegmentType::BeginCombat,
-
                 "END_COMBAT" => SegmentType::EndCombat,
                 "PLAYER_INFO" => {
                     let unit_id = tokens.pop_front().unwrap().parse().unwrap();

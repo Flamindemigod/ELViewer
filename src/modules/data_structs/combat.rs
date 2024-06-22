@@ -68,6 +68,17 @@ pub enum UnitType {
     Object,
 }
 
+impl From<String> for UnitType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "PLAYER" => Self::Player,
+            "MONSTER" => Self::Monster,
+            "OBJECT" => Self::Object,
+            x => unimplemented!("{x} Unit is not implemented"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum PlayerReaction {
     PlayerAlly,
@@ -76,4 +87,18 @@ pub enum PlayerReaction {
     NpcAlly,
     Neutral,
     Hostile,
+}
+
+impl From<String> for PlayerReaction {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "PLAYER_ALLY" => Self::PlayerAlly,
+            "FRIENDLY" => Self::Friendly,
+            "COMPANION" => Self::Companion,
+            "NPC_ALLY" => Self::NpcAlly,
+            "NEUTRAL" => Self::Neutral,
+            "HOSTILE" => Self::Hostile,
+            x => unimplemented!("{x} Player Reaction not implemented"),
+        }
+    }
 }

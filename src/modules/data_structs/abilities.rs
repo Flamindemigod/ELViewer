@@ -24,6 +24,18 @@ pub enum EndReason {
     PlayerCancelled,
     Interrupted,
 }
+
+impl From<String> for EndReason {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "COMPLETED" => Self::Completed,
+            "PLAYER_CANCELLED" => Self::PlayerCancelled,
+            "INTERRUPTED" => Self::Interrupted,
+            x => unimplemented!("{x} End Reason is not implemented"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct EndCast {
     pub end_reason: EndReason,
@@ -346,6 +358,17 @@ pub enum EffectChangeType {
     Gained,
     Updated,
 }
+
+impl From<String> for EffectChangeType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "FADED" => Self::Faded,
+            "GAINED" => Self::Gained,
+            "UPDATED" => Self::Updated,
+            x => unimplemented!("{x} Effect Change Type is not implemented"),
+        }
+    }
+}
 #[derive(Debug)]
 pub struct EffectChanged {
     pub change_type: EffectChangeType,
@@ -371,6 +394,16 @@ pub enum EffectType {
     Debuff,
 }
 
+impl From<String> for EffectType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "BUFF" => Self::Buff,
+            "DEBUFF" => Self::Debuff,
+            x => unimplemented!("{x} Effect Type is not implemented"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum StatusEffectType {
     None,
@@ -381,11 +414,37 @@ pub enum StatusEffectType {
     Poison,
     Environment,
 }
+
+impl From<String> for StatusEffectType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "NONE" => Self::None,
+            "MAGIC" => Self::Magic,
+            "SNARE" => Self::Snare,
+            "ROOT" => Self::Root,
+            "BLEED" => Self::Bleed,
+            "POISON" => Self::Poison,
+            "ENVIRONMENT" => Self::Environment,
+            x => unimplemented!("{x} Status Effect Type is not implemented"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub enum EffectBarDisplayBehaviour {
     Default,
     Never,
 }
+impl From<String> for EffectBarDisplayBehaviour {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "DEFAULT" => Self::Default,
+            "NEVER" => Self::Never,
+            x => unimplemented!("{x} Effect Bar Display behaviour is not implemented"),
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct EffectInfo {
     pub ability_id: usize,
