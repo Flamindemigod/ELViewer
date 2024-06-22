@@ -10,8 +10,11 @@ fn main() -> Result<()> {
     let mapped_file = unsafe { Mmap::map(&file).unwrap() };
     let _file_size = mapped_file.len();
     let mut lexer = Lexer::new(mapped_file.lines());
-    while let Some(segment) = lexer.next_segment(){
-    println!("{segment:#?}");
+    let mut count = 0;
+    while let Some(segment) = lexer.next_segment() {
+        // println!("{segment:#?}");
+        println!("Count: {count}");
+        count += 1;
     }
     // println!("{:#?}", lexer.data.lines().take(5).collect::<Vec<_>>());
     // for line in mapped_file.lines().take(20) {
