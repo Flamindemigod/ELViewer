@@ -257,10 +257,9 @@ impl Lexer {
                     })
                 }
                 "COMBAT_EVENT" => {
-                    let action_result =
-                        ActionResult::parse_action_result(&tokens.pop_front().unwrap());
-                    let damage_type = DamageType::parse_damage_type(&tokens.pop_front().unwrap());
-                    let power_type = PowerType::parse_power_type(&tokens.pop_front().unwrap());
+                    let action_result = tokens.pop_front().unwrap().into();
+                    let damage_type = tokens.pop_front().unwrap().into();
+                    let power_type = tokens.pop_front().unwrap().into();
                     let hit_value = tokens.pop_front().unwrap().parse().unwrap();
                     let overflow = tokens.pop_front().unwrap().parse().unwrap();
                     let cast_track_id = tokens.pop_front().unwrap().parse().unwrap();

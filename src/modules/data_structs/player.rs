@@ -96,7 +96,7 @@ pub struct Equipment {
 
 impl<T, V> EquipmentInfo<T, V>
 where
-    T: TraitMarker,
+    T: TraitMarker + From<String>,
     V: EnchantMarker,
 {
     pub fn parse_equipment(tokens: &mut VecDeque<String>) -> Self {
@@ -107,8 +107,8 @@ where
             EquipmentLevel::NoCp(tokens.pop_front().unwrap().parse().unwrap())
         };
 
-        let r#trait: T = T::parse_trait(&tokens.pop_front().unwrap());
-        let display_quality = Quality::parse_display_quality(&tokens.pop_front().unwrap());
+        let r#trait: T = tokens.pop_front().unwrap().into();
+        let display_quality = tokens.pop_front().unwrap().into();
         let set_id = tokens.pop_front().unwrap().parse().unwrap();
         let enchant = Enchant::parse_enchant(tokens);
 
@@ -228,12 +228,15 @@ pub enum WeaponTrait {
     Decisive,
 }
 
-trait r#TraitMarker {
-    fn parse_trait(token: &str) -> Self;
-}
-impl r#TraitMarker for ArmorTrait {
-    fn parse_trait(token: &str) -> Self {
-        match token {
+trait r#TraitMarker {}
+impl r#TraitMarker for ArmorTrait {}
+impl r#TraitMarker for JewelTrait {}
+impl r#TraitMarker for WeaponTrait {}
+impl r#TraitMarker for PoisonTrait {}
+
+impl From<String> for ArmorTrait {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "ARMOR_DIVINES" => Self::Divines,
             "ARMOR_INFUSED" => Self::Infused,
             "ARMOR_REINFORCED" => Self::Reinforced,
@@ -241,9 +244,9 @@ impl r#TraitMarker for ArmorTrait {
         }
     }
 }
-impl r#TraitMarker for JewelTrait {
-    fn parse_trait(token: &str) -> Self {
-        match token {
+impl From<String> for JewelTrait {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "JEWELRY_ARCANE" => Self::Arcane,
             "JEWELRY_INFUSED" => Self::Infused,
             "JEWELRY_BLOODTHIRSTY" => Self::Bloodthirsty,
@@ -252,9 +255,9 @@ impl r#TraitMarker for JewelTrait {
         }
     }
 }
-impl r#TraitMarker for WeaponTrait {
-    fn parse_trait(token: &str) -> Self {
-        match token {
+impl From<String> for WeaponTrait {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "WEAPON_INFUSED" => Self::Infused,
             "WEAPON_POWERED" => Self::Powered,
             "WEAPON_NIRNHONED" => Self::Nirnhoned,
@@ -265,9 +268,9 @@ impl r#TraitMarker for WeaponTrait {
         }
     }
 }
-impl r#TraitMarker for PoisonTrait {
-    fn parse_trait(token: &str) -> Self {
-        match token {
+impl From<String> for PoisonTrait {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "NONE" => Self::None,
             x => unimplemented!("{x} trait is not implemented"),
         }
@@ -284,9 +287,9 @@ pub enum Quality {
     Mythic,
 }
 
-impl Quality {
-    pub fn parse_display_quality(token: &str) -> Self {
-        match token {
+impl From<String> for Quality {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "NORMAL" => Self::Normal,
             "FINE" => Self::Fine,
             "SUPERIOR" => Self::Superior,
@@ -408,7 +411,7 @@ where
                 EquipmentLevel::NoCp(tokens.pop_front().unwrap().parse().unwrap())
             };
 
-            let quality = Quality::parse_display_quality(&tokens.pop_front().unwrap());
+            let quality = tokens.pop_front().unwrap().into();
             Some(Enchant {
                 r#type: enchant_type,
                 level,

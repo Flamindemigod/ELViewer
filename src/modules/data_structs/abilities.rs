@@ -157,9 +157,9 @@ pub enum ActionResult {
     WrongWeapon,
 }
 
-impl ActionResult {
-    pub fn parse_action_result(data: &str) -> Self {
-        match data {
+impl From<String> for ActionResult {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "ABILITY_ON_COOLDOWN" => Self::AbilityOnCooldown,
             "ABSORBED" => Self::Absorbed,
             "BAD_TARGET" => Self::BadTarget,
@@ -291,9 +291,9 @@ pub enum DamageType {
     Shock,
 }
 
-impl DamageType {
-    pub fn parse_damage_type(data: &str) -> Self {
-        match data {
+impl From<String> for DamageType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "BLEED" => Self::Bleed,
             "COLD" => Self::Cold,
             "DISEASE" => Self::Disease,
@@ -330,9 +330,9 @@ pub enum PowerType {
     Werewolf = 1,
 }
 
-impl PowerType {
-    pub fn parse_power_type(data: &str) -> Self {
-        match data {
+impl From<String> for PowerType {
+    fn from(value: String) -> Self {
+        match value.as_str() {
             "8" => Self::Adrenaline,
             "5" => Self::Charges,
             "3" => Self::Combo,
