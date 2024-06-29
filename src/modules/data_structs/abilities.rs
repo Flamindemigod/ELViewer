@@ -434,12 +434,14 @@ impl From<String> for StatusEffectType {
 pub enum EffectBarDisplayBehaviour {
     Default,
     Never,
+    Always
 }
 impl From<String> for EffectBarDisplayBehaviour {
     fn from(value: String) -> Self {
         match value.as_str() {
             "DEFAULT" => Self::Default,
             "NEVER" => Self::Never,
+            "ALWAYS" => Self::Always,
             x => unimplemented!("{x} Effect Bar Display behaviour is not implemented"),
         }
     }

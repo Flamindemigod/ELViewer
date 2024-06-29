@@ -83,6 +83,9 @@ pub enum SegmentType {
     TrialInit(Trialinit),
     BeginTrial(BeginTrial),
     EndTrial(EndTrial),
+    EndlessDungeonBuffRemove,
+    EndlessDungeonBuffAdd,
+    EndlessDungeonStageEnd,
 }
 #[derive(Debug)]
 pub struct Segment {

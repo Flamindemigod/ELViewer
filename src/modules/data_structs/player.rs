@@ -240,6 +240,9 @@ impl From<String> for ArmorTrait {
             "ARMOR_DIVINES" => Self::Divines,
             "ARMOR_INFUSED" => Self::Infused,
             "ARMOR_REINFORCED" => Self::Reinforced,
+            "ARMOR_TRAINING" => Self::Training,
+            "ARMOR_WELL_FITTED" => Self::WellFitted,
+           "ARMOR_STURDY" => Self::Sturdy, 
             x => unimplemented!("{x} trait is not implemented"),
         }
     }
@@ -251,6 +254,8 @@ impl From<String> for JewelTrait {
             "JEWELRY_INFUSED" => Self::Infused,
             "JEWELRY_BLOODTHIRSTY" => Self::Bloodthirsty,
             "JEWELRY_ROBUST" => Self::Robust,
+            "JEWELRY_SWIFT" => Self::Swift,
+            "JEWELRY_HARMONY" => Self::Harmony,
             x => unimplemented!("{x} trait is not implemented"),
         }
     }
@@ -285,6 +290,7 @@ pub enum Quality {
     Epic,
     Legendary,
     Mythic,
+    Arcane, //Unsure What this quality type is
 }
 
 impl From<String> for Quality {
@@ -296,6 +302,7 @@ impl From<String> for Quality {
             "EPIC" => Self::Epic,
             "LEGENDARY" => Self::Legendary,
             "ARTIFACT" => Self::Mythic,
+            "ARCANE" => Self::Arcane,
             x => unimplemented!("{x} Quality is not implemented"),
         }
     }
@@ -307,17 +314,20 @@ pub enum ArmorEnchantType {
     Magicka,
     Stamina,
     PrismaticDefense,
+    Invalid,
 }
 #[derive(Debug)]
 pub enum WeaponEnchantType {
     AbsorbMagicka,
     Berserker,
-    ReduceArmor,
+    Crusher,
+    Weakening,
     FieryWeapon,
     PoisonedWeapon,
     AbsorbHealth,
     AbsorbStamina,
     ChargedWeapon,
+    Invalid,
 }
 #[derive(Debug)]
 pub enum JewelEnchantType {
@@ -329,6 +339,7 @@ pub enum JewelEnchantType {
     HealthRegen,
     IncreasePhysicalDamage,
     ReduceBlockAndBash,
+    Invalid,
 }
 #[derive(Debug)]
 pub enum PoisonEnchantType {
@@ -346,6 +357,7 @@ impl EnchantMarker for ArmorEnchantType {
             "STAMINA" => Some(Self::Stamina),
             "HEALTH" => Some(Self::Health),
             "PRISMATIC_DEFENSE" => Some(Self::PrismaticDefense),
+            "INVALID" => Some(Self::Invalid),
             x => unimplemented!("{x} enchant is not implemented"),
         }
     }
@@ -361,6 +373,7 @@ impl EnchantMarker for JewelEnchantType {
             "HEALTH_REGEN" => Some(Self::HealthRegen),
             "INCREASE_PHYSICAL_DAMAGE" => Some(Self::IncreasePhysicalDamage),
             "REDUCE_BLOCK_AND_BASH" => Some(Self::ReduceBlockAndBash),
+            "INVALID" => Some(Self::Invalid),
             x => unimplemented!("{x} enchant is not implemented"),
         }
     }
@@ -370,12 +383,14 @@ impl EnchantMarker for WeaponEnchantType {
         match token {
             "ABSORB_MAGICKA" => Some(Self::AbsorbMagicka),
             "BERSERKER" => Some(Self::Berserker),
-            "REDUCE_ARMOR" => Some(Self::ReduceArmor),
+            "REDUCE_ARMOR" => Some(Self::Crusher),
             "FIERY_WEAPON" => Some(Self::FieryWeapon),
             "POISONED_WEAPON" => Some(Self::PoisonedWeapon),
             "ABSORB_HEALTH" => Some(Self::AbsorbHealth),
             "ABSORB_STAMINA" => Some(Self::AbsorbStamina),
             "CHARGED_WEAPON" => Some(Self::ChargedWeapon),
+            "REDUCE_POWER" => Some(Self::Weakening),
+            "INVALID" => Some(Self::Invalid),
             x => unimplemented!("{x} enchant is not implemented"),
         }
     }
@@ -523,6 +538,10 @@ pub enum Race {
     WoodElf = 8,
     Nord = 5,
     Redguard = 2,
+    Breton = 1,
+    Argonian = 6,
+    Orc = 3,
+    Imperial = 10,
     None = 0,
 }
 
@@ -535,6 +554,10 @@ impl Race {
             "8" => Self::WoodElf,
             "5" => Self::Nord,
             "2" => Self::Redguard,
+            "1" => Self::Breton,
+            "6" => Self::Argonian,
+            "3" => Self::Orc,
+            "10" => Self::Imperial,
             "0" => Self::None,
             x => unimplemented!("{x} race is not implemented"),
         }
@@ -547,6 +570,9 @@ pub enum Class {
     Templar = 6,
     DragonKnight = 1,
     Sorcerer = 2,
+    Necromancer = 5,
+    Warden = 4,
+    NightBlade = 3,
     None = 0,
 }
 
@@ -557,6 +583,9 @@ impl Class {
             "6" => Self::Templar,
             "1" => Self::DragonKnight,
             "2" => Self::Sorcerer,
+            "5" => Self::Necromancer,
+            "4" => Self::Warden,
+            "3" => Self::NightBlade,
             "0" => Self::None,
             x => unimplemented!("{x} class is not implemented"),
         }
