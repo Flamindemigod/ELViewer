@@ -1,5 +1,13 @@
+use memmap::Mmap;
+
 use super::{abilities::*, combat::*, log::*, player::*};
-use std::{collections::VecDeque, io::Lines, path::PathBuf, sync::Arc};
+use std::{
+    collections::VecDeque,
+    fs,
+    io::{BufRead, Lines},
+    path::PathBuf,
+    sync::Arc,
+};
 
 pub fn parse_bool(b: &str) -> bool {
     match b {
@@ -23,6 +31,10 @@ impl Lexer {
                 })
                 .collect::<VecDeque<_>>(),
         }
+    }
+
+    fn get_len(&self) -> usize {
+        self.data.len()
     }
 
     fn tokenize(data_: &str) -> Vec<String> {
@@ -465,4 +477,19 @@ impl Lexer {
             None
         }
     }
+}
+
+pub fn parse_file(path: &PathBuf) -> Vec<Segment> {
+    let file = fs::File::open(path).unwrap();
+    let mapped_file = unsafe { Mmap::map(&file).unwrap() };
+    let lines = mapped_file.lines();
+    let mut lexer = Lexer::new(lines);
+    println!("Len: {:#?}", lexer.get_len());
+    let mut segment_array = Vec::with_capacity(lexer.get_len());
+    while let Some(segment) = lexer.next_segment() {
+        segment_array.push(segment);
+        // println!("{segment:#?}");
+    }
+    println!("Done Parsing: segment array len = {}", segment_array.len());
+    segment_array
 }
