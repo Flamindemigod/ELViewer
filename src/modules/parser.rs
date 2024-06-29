@@ -468,6 +468,18 @@ impl Lexer {
                         backup_ability_id: backup_ability_id.try_into().unwrap(),
                     }))
                 }
+                "ENDLESS_DUNGEON_BUFF_ADDED" => {
+                    eprintln!("Infinite Archive Buff Added Not Handled");
+                    SegmentType::EndlessDungeonBuffAdd
+                }
+                "ENDLESS_DUNGEON_STAGE_END" => {
+                    eprintln!("Infinite Archive Stage End Not Handled");
+                    SegmentType::EndlessDungeonStageEnd
+                }
+                "ENDLESS_DUNGEON_BUFF_REMOVED" => {
+                    eprintln!("Infinite Archive Buffs Removal Not Handled");
+                    SegmentType::EndlessDungeonBuffRemove
+                }
                 x => {
                     todo!("{x} is not implemented!(): {:#?}", tokens);
                 }
