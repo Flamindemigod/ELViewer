@@ -6,7 +6,7 @@ use memmap::Mmap;
 use modules::parser::Lexer;
 
 fn main() -> Result<()> {
-    let file = File::open("Encounter1.log").unwrap();
+    let file = File::open("Encounter2.log").unwrap();
     let mapped_file = unsafe { Mmap::map(&file).unwrap() };
     let mut lexer = Lexer::new(mapped_file.lines());
     let mut segment_array = vec![];

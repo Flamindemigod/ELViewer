@@ -200,6 +200,7 @@ pub enum ArmorTrait {
     Sturdy,
     WellFitted,
     Training,
+    None,
 }
 
 #[derive(Debug)]
@@ -242,7 +243,8 @@ impl From<String> for ArmorTrait {
             "ARMOR_REINFORCED" => Self::Reinforced,
             "ARMOR_TRAINING" => Self::Training,
             "ARMOR_WELL_FITTED" => Self::WellFitted,
-           "ARMOR_STURDY" => Self::Sturdy, 
+           "ARMOR_STURDY" => Self::Sturdy,
+           "NONE" => Self::None,
             x => unimplemented!("{x} trait is not implemented"),
         }
     }
