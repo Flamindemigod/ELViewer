@@ -1,4 +1,5 @@
 use memmap::Mmap;
+use tokio::runtime::Runtime;
 
 use super::{abilities::*, combat::*, log::*, player::*};
 use std::{
@@ -33,7 +34,7 @@ impl Lexer {
         }
     }
 
-    fn get_len(&self) -> usize {
+    pub fn get_len(&self) -> usize {
         self.data.len()
     }
 
@@ -491,17 +492,4 @@ impl Lexer {
     }
 }
 
-pub fn parse_file(path: &PathBuf) -> Vec<Segment> {
-    let file = fs::File::open(path).unwrap();
-    let mapped_file = unsafe { Mmap::map(&file).unwrap() };
-    let lines = mapped_file.lines();
-    let mut lexer = Lexer::new(lines);
-    println!("Len: {:#?}", lexer.get_len());
-    let mut segment_array = Vec::with_capacity(lexer.get_len());
-    while let Some(segment) = lexer.next_segment() {
-        segment_array.push(segment);
-        // println!("{segment:#?}");
-    }
-    println!("Done Parsing: segment array len = {}", segment_array.len());
-    segment_array
-}
+

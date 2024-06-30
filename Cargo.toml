@@ -11,3 +11,5 @@ glib = "0.19.8"
 gtk = { version = "0.8.2", package = "gtk4", features = ["v4_12"] }
 memmap = "0.7.0"
 pango = "0.19.8"
+tokio = { version = "1.38.0", features = ["full"] }
+tokio-macros = { version = "0.2.0-alpha.6" }
