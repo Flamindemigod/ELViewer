@@ -1,5 +1,5 @@
 [package]
-name = "elviwer"
+name = "elviewer"
 version = "0.0.0"
 description = "An Encounter log viewer built for The Elder Scrolls Online"
 authors = ["Flamindemigod"]
