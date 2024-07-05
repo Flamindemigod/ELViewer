@@ -434,7 +434,7 @@ impl From<String> for StatusEffectType {
 pub enum EffectBarDisplayBehaviour {
     Default,
     Never,
-    Always
+    Always,
 }
 impl From<String> for EffectBarDisplayBehaviour {
     fn from(value: String) -> Self {

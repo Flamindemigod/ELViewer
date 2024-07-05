@@ -15,7 +15,6 @@ pub struct BeginLog {
     pub game_version: Arc<str>,
 }
 
-
 #[derive(Debug)]
 pub struct MapInfo {
     pub id: usize,
