@@ -25,6 +25,9 @@ impl Lexer {
         }
     }
 
+    pub fn get_len(&self) -> usize {
+        self.data.len()
+    }
     fn tokenize(data_: &str) -> Vec<String> {
         let mut data = data_.chars();
         let mut tokens = vec![];
