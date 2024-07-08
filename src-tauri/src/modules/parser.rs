@@ -88,23 +88,23 @@ impl Lexer {
             };
             let line = match token {
                 "BEGIN_LOG" => {
-                    let time_since_epoch_ms = tokens.pop_front().unwrap().parse().unwrap();
+                    let time_since_epoch_s = (tokens.pop_front().unwrap().parse::<usize>().unwrap() / 1000) as u32;
                     let log_version = tokens.pop_front().unwrap().parse().unwrap();
                     let realm_name: String = tokens.pop_front().unwrap();
                     let language: String = tokens.pop_front().unwrap();
                     let game_version: String = tokens.pop_front().unwrap();
                     SegmentType::BeginLog(BeginLog {
-                        time_since_epoch_ms,
+                        time_since_epoch_s,
                         log_version,
-                        realm_name: realm_name.into(),
-                        language: language.into(),
-                        game_version: game_version.into(),
+                        realm_name,
+                        language,
+                        game_version,
                     })
                 }
                 "END_LOG" => SegmentType::EndLog,
                 "ZONE_CHANGED" => {
                     let id = tokens.pop_front().unwrap().parse().unwrap();
-                    let name = tokens.pop_front().unwrap().into();
+                    let name = tokens.pop_front().unwrap();
                     let mode = match tokens.pop_front().unwrap().as_str() {
                         "VETERAN" => DungeonDifficulty::Veteran,
                         "NORMAL" => DungeonDifficulty::Normal,
@@ -143,9 +143,9 @@ impl Lexer {
                         is_boss,
                         class,
                         race,
-                        name: name.into(),
-                        display_name: display_name.into(),
-                        character_id: character_id.parse().unwrap(),
+                        name,
+                        display_name,
+                        character_id,
                         level: level.parse().unwrap(),
                         champion_points: champion_points.parse().unwrap(),
                         owner_unit_id: owner_unit_id.parse().unwrap(),
@@ -180,7 +180,7 @@ impl Lexer {
                     let blockable = parse_bool(&tokens.pop_front().unwrap());
                     SegmentType::AbilityInfo(AbilityInfo {
                         ability_id: ability_id.parse().unwrap(),
-                        name: name.into(),
+                        name,
                         icon_path: PathBuf::from(icon_path),
                         interruptible,
                         blockable,
@@ -192,7 +192,7 @@ impl Lexer {
                     let texture_path = tokens.pop_front().unwrap();
                     SegmentType::MapInfo(MapInfo {
                         id: id.parse().unwrap(),
-                        name: name.into(),
+                        name,
                         texture_path: PathBuf::from(texture_path),
                     })
                 }
@@ -311,9 +311,9 @@ impl Lexer {
                         unit_id: unit_id.parse().unwrap(),
                         class,
                         race,
-                        name: name.into(),
-                        display_name: display_name.into(),
-                        character_id: character_id.parse().unwrap(),
+                        name,
+                        display_name,
+                        character_id, 
                         level: level.parse().unwrap(),
                         champion_points: champion_points.parse().unwrap(),
                         owner_unit_id: owner_unit_id.parse().unwrap(),
@@ -323,7 +323,7 @@ impl Lexer {
                 }
                 "BEGIN_TRIAL" => {
                     let id = tokens.pop_front().unwrap().parse().unwrap();
-                    let start_time_ms = tokens.pop_front().unwrap().parse().unwrap();
+                    let start_time_ms = tokens.pop_front().unwrap();
 
                     SegmentType::BeginTrial(BeginTrial { id, start_time_ms })
                 }
@@ -361,63 +361,63 @@ impl Lexer {
                             Self::tokenize(&equipment_tokens).into();
                         match equipment_piece_tokens.pop_front().unwrap().as_str() {
                             "HEAD" => {
-                                equipment_info.head = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.head = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "CHEST" => {
-                                equipment_info.chest = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.chest = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
 
                             "NECK" => {
-                                equipment_info.neck = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.neck = Some(EquipmentJewel::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
 
                             "SHOULDERS" => {
-                                equipment_info.shoulders = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.shoulders = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
 
                             "WAIST" => {
-                                equipment_info.waist = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.waist = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "LEGS" => {
-                                equipment_info.legs = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.legs = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "FEET" => {
-                                equipment_info.feet = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.feet = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "COSTUME" => (),
                             "RING1" => {
-                                equipment_info.ring1 = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.ring1 = Some(EquipmentJewel::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "RING2" => {
-                                equipment_info.ring2 = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.ring2 = Some(EquipmentJewel::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "HAND" => {
-                                equipment_info.hand = Some(EquipmentInfo::parse_equipment(
+                                equipment_info.hand = Some(EquipmentBody::parse_equipment(
                                     &mut equipment_piece_tokens,
                                 ));
                             }
                             "POISON" => {
-                                equipment_info.main_poison = Some(EquipmentInfo::parse_equipment(
-                                    &mut equipment_piece_tokens,
-                                ));
+                                equipment_info.main_poison = Some(
+                                    EquipmentPoison::parse_equipment(&mut equipment_piece_tokens),
+                                );
                             }
 
                             x if ["MAIN_HAND", "OFF_HAND"].contains(&x) => {
@@ -444,12 +444,12 @@ impl Lexer {
                     let mut primary_ability_id = Self::tokenize(&tokens.pop_front().unwrap())
                         .iter()
                         .map(|v| v.parse().unwrap())
-                        .collect::<Vec<usize>>();
+                        .collect::<Vec<_>>();
                     primary_ability_id.resize(6, 0);
                     let mut backup_ability_id = Self::tokenize(&tokens.pop_front().unwrap())
                         .iter()
                         .map(|v| v.parse().unwrap())
-                        .collect::<Vec<usize>>();
+                        .collect::<Vec<_>>();
                     backup_ability_id.resize(6, 0);
                     SegmentType::PlayerInfo(Box::new(PlayerInfo {
                         unit_id,

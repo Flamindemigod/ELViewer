@@ -14,11 +14,11 @@ tauri-build = { version = "2.0.0-beta", features = [] }
 tauri = { version = "2.0.0-beta", features = [] }
 tauri-plugin-shell = "2.0.0-beta"
 serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde_json = {version ="1", features= ["arbitrary_precision"] }
 tauri-plugin-dialog = "2.0.0-beta.10"
 memmap = "0.7.0"
 anyhow = "1.0.86"
 taurpc = "0.3.0-alpha.1"
-specta = { version = "1.0.5", features = ["export"] }
+specta = { version = "1.0.5", features = ["export", "rust_decimal"] }
 tokio = { version = "1.23", features = ["full"] }
 

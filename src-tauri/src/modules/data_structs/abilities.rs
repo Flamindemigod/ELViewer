@@ -1,24 +1,29 @@
-use std::{path::PathBuf, sync::Arc};
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+use specta::Type;
 
 use super::player::{Targets, UnitState};
 
 #[derive(Debug)]
+#[taurpc::ipc_type]
 pub struct Effect {
-    pub ability_id: usize,
+    pub ability_id: u32,
     pub stack_count: u8,
 }
 
 #[derive(Debug)]
+#[taurpc::ipc_type]
 pub struct BeginCast {
-    pub duration_ms: usize,
+    pub duration_ms: u32,
     pub channeled: bool,
-    pub cast_track_id: usize,
-    pub ability_id: usize,
+    pub cast_track_id: u32,
+    pub ability_id: u32,
     pub source: UnitState,
     pub target: Targets,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum EndReason {
     Completed,
     PlayerCancelled,
@@ -37,14 +42,15 @@ impl From<String> for EndReason {
 }
 
 #[derive(Debug)]
+#[taurpc::ipc_type]
 pub struct EndCast {
     pub end_reason: EndReason,
-    pub cast_track_id: usize,
-    pub interrupting_ability_id: Option<usize>,
-    pub interrupting_unit_id: Option<usize>,
+    pub cast_track_id: u32,
+    pub interrupting_ability_id: Option<u32>,
+    pub interrupting_unit_id: Option<u32>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum ActionResult {
     AbilityOnCooldown,
     Absorbed,
@@ -274,7 +280,7 @@ impl From<String> for ActionResult {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum DamageType {
     Bleed,
     Cold,
@@ -312,7 +318,7 @@ impl From<String> for DamageType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum PowerType {
     Adrenaline = 8,
     Charges = 5,
@@ -352,7 +358,7 @@ impl From<String> for PowerType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum EffectChangeType {
     Faded,
     Gained,
@@ -370,25 +376,27 @@ impl From<String> for EffectChangeType {
     }
 }
 #[derive(Debug)]
+#[taurpc::ipc_type]
 pub struct EffectChanged {
     pub change_type: EffectChangeType,
     pub stack_count: u8,
-    pub cast_track_id: usize,
-    pub ability_id: usize,
+    pub cast_track_id: u32,
+    pub ability_id: u32,
     pub source: UnitState,
     pub target: Targets,
-    pub player_initiated_remove_cast_track_id: Option<usize>,
+    pub player_initiated_remove_cast_track_id: Option<u32>,
 }
 
 #[derive(Debug)]
+#[taurpc::ipc_type]
 pub struct AbilityInfo {
-    pub ability_id: usize,
-    pub name: Arc<str>,
+    pub ability_id: u32,
+    pub name: String,
     pub icon_path: PathBuf,
     pub interruptible: bool,
     pub blockable: bool,
 }
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum EffectType {
     Buff,
     Debuff,
@@ -404,7 +412,7 @@ impl From<String> for EffectType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum StatusEffectType {
     None,
     Magic,
@@ -430,7 +438,7 @@ impl From<String> for StatusEffectType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum EffectBarDisplayBehaviour {
     Default,
     Never,
@@ -448,10 +456,11 @@ impl From<String> for EffectBarDisplayBehaviour {
 }
 
 #[derive(Debug)]
+#[taurpc::ipc_type]
 pub struct EffectInfo {
-    pub ability_id: usize,
+    pub ability_id: u32,
     pub effect_type: EffectType,
     pub status_effect_type: StatusEffectType,
     pub effect_bar_display_behaviour: EffectBarDisplayBehaviour,
-    pub grants_synergy_ability_id: Option<usize>,
+    pub grants_synergy_ability_id: Option<u32>,
 }
