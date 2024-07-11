@@ -2,121 +2,123 @@
 
 export type EndCast = { end_reason: EndReason; cast_track_id: number; interrupting_ability_id: number | null; interrupting_unit_id: number | null }
 
-export type ArmorEnchant = { type: ArmorEnchantType; level: EquipmentLevel; quality: Quality }
+export type EffectInfo = { ability_id: number; effect_type: EffectType; status_effect_type: StatusEffectType; effect_bar_display_behaviour: EffectBarDisplayBehaviour; grants_synergy_ability_id: number | null }
 
-export type EquipmentPoison = { id: number; level: EquipmentLevel; trait: PoisonTrait; display_quality: Quality; set_id: number; enchant: PoisonEnchant | null }
+export type Quality = "Normal" | "Fine" | "Superior" | "Epic" | "Legendary" | "Mythic" | "Arcane"
 
-export type StatusEffectType = "None" | "Magic" | "Snare" | "Root" | "Bleed" | "Poison" | "Environment"
-
-export type SegmentType = { BeginLog: BeginLog } | "EndLog" | "BeginCombat" | "EndCombat" | { PlayerInfo: PlayerInfo } | { BeginCast: BeginCast } | { EndCast: EndCast } | { CombatEvent: CombatEvent } | { HealthRegen: HealthRegen } | { UnitAdded: UnitAdded } | { UnitChanged: UnitChanged } | { UnitRemoved: UnitRemoved } | { EffectChanged: EffectChanged } | { AbilityInfo: AbilityInfo } | { EffectInfo: EffectInfo } | { MapInfo: MapInfo } | { ZoneInfo: ZoneInfo } | { TrialInit: Trialinit } | { BeginTrial: BeginTrial } | { EndTrial: EndTrial } | "EndlessDungeonBuffRemove" | "EndlessDungeonBuffAdd" | "EndlessDungeonStageEnd"
+export type StatusEffectType = "None" | "Magic" | "Snare" | "Root" | "Bleed" | "Poison" | "Environment" | "Disease"
 
 export type Effect = { ability_id: number; stack_count: number }
-
-export type ParserState = "None" | { Processing: number } | "Processed"
 
 export type EffectChanged = { change_type: EffectChangeType; stack_count: number; cast_track_id: number; ability_id: number; source: UnitState; target: Targets; player_initiated_remove_cast_track_id: number | null }
 
 export type WeaponHand = { OneHand: [EquipmentWeapon | null, Either<EquipmentWeapon, EquipmentBody> | null] } | { TwoHand: EquipmentWeapon }
 
-export type Targets = "SelfTarget" | { Target: UnitState } | "None"
-
-export type EndTrial = { id: number; duration_ms: number; success: boolean; final_score: number; final_vitality_bonus: number }
-
 export type Either<L, R> = { Left: L } | { Right: R }
 
 export type UnitState = { unit_id: number; health: [number, number]; magicka: [number, number]; stamina: [number, number]; ultimate: [number, number]; werewolf: [number, number]; shield: number; position: [number, number]; heading: number }
-
-export type Trialinit = { id: number; in_progress: boolean; completed: boolean; start_time_ms: number; duration_ms: number; success: boolean; final_score: number }
 
 export type UnitRemoved = { unit_id: number }
 
 export type EndReason = "Completed" | "PlayerCancelled" | "Interrupted"
 
-export type BeginTrial = { id: number; start_time_ms: string }
+export type Trialinit = { id: Trial; in_progress: boolean; completed: boolean; start_time_ms: string; duration_ms: number; success: boolean; final_score: number }
 
-export type TauRpcApiOutputTypes = { proc_name: "poll_state"; output_type: ParserState } | { proc_name: "upload"; output_type: null } | { proc_name: "get_trial_count"; output_type: number } | { proc_name: "get_segment"; output_type: SegmentType }
+export type SegmentType = { BeginLog: BeginLog } | "EndLog" | "BeginCombat" | "EndCombat" | { PlayerInfo: PlayerInfo } | { BeginCast: BeginCast } | { EndCast: EndCast } | { CombatEvent: CombatEvent } | { HealthRegen: HealthRegen } | { UnitAdded: UnitAdded } | { UnitChanged: UnitChanged } | { UnitRemoved: UnitRemoved } | { EffectChanged: EffectChanged } | { AbilityInfo: AbilityInfo } | { EffectInfo: EffectInfo } | { MapInfo: MapInfo } | { ZoneInfo: ZoneInfo } | { TrialInit: Trialinit } | { BeginTrial: BeginTrial } | { EndTrial: EndTrial } | "EndlessDungeonBuffRemove" | "EndlessDungeonBuffAdd" | "EndlessDungeonStageEnd"
+
+export type TauRpcApiInputTypes = { proc_name: "poll_state"; input_type: null } | { proc_name: "upload"; input_type: { __taurpc_type: string } } | { proc_name: "get_trial_count"; input_type: null } | { proc_name: "get_segment"; input_type: null } | { proc_name: "get_trials"; input_type: null }
 
 export type Equipment = { head: EquipmentBody | null; shoulders: EquipmentBody | null; chest: EquipmentBody | null; hand: EquipmentBody | null; waist: EquipmentBody | null; legs: EquipmentBody | null; feet: EquipmentBody | null; neck: EquipmentJewel | null; ring1: EquipmentJewel | null; ring2: EquipmentJewel | null; main: WeaponHand | null; main_poison: EquipmentPoison | null; backup: WeaponHand | null; backup_poison: EquipmentPoison | null }
 
 export type EffectChangeType = "Faded" | "Gained" | "Updated"
 
-export type ArmorEnchantType = "Health" | "Magicka" | "Stamina" | "PrismaticDefense" | "Invalid"
+export type JewelEnchant = { type: JewelEnchantType; level: EquipmentLevel; quality: Quality }
 
-export type EquipmentJewel = { id: number; level: EquipmentLevel; trait: JewelTrait; display_quality: Quality; set_id: number; enchant: JewelEnchant | null }
+export type ParserState = "None" | { Processing: number } | "Processed"
 
 export type UnitType = "Player" | "Monster" | "Object"
 
+export type EndTrial = { id: Trial; duration_ms: number; success: boolean; final_score: number; final_vitality_bonus: number }
+
 export type UnitAdded = { unit_id: number; unit_type: UnitType; is_local_player: boolean; player_per_session_id: number; monster_id: number; is_boss: boolean; class: Class; race: Race; name: string; display_name: string; character_id: string; level: number; champion_points: number; owner_unit_id: number; reaction: PlayerReaction; is_grouped_with_local_player: boolean }
 
-export type Class = "Arcanist" | "Templar" | "DragonKnight" | "Sorcerer" | "Necromancer" | "Warden" | "NightBlade" | "None"
+export type Trial = "KynesAegis" | "SanitysEdge" | "LucentCitadel" | "DreadsailReef" | "Rockgrove" | "Sunspire" | "Cloudrest" | "AsylumSanctorium" | "HallsOfFabrication" | "MawOfLorkhaj"
 
 export type UnitChanged = { unit_id: number; class: Class; race: Race; name: string; display_name: string; character_id: string; level: number; champion_points: number; owner_unit_id: number; reaction: PlayerReaction; is_grouped_with_local_player: boolean }
 
-export type EquipmentBody = { id: number; level: EquipmentLevel; trait: ArmorTrait; display_quality: Quality; set_id: number; enchant: ArmorEnchant | null }
+export type Race = "DarkElf" | "Khajit" | "HighElf" | "WoodElf" | "Nord" | "Redguard" | "Breton" | "Argonian" | "Orc" | "Imperial" | "None"
 
 export type EffectType = "Buff" | "Debuff"
 
 export type MapInfo = { id: number; name: string; texture_path: string }
 
-export type EffectBarDisplayBehaviour = "Default" | "Never" | "Always"
+export type PlayerInfo = { unit_id: number; long_term_effect: Effect[]; equipment_info: Equipment; primary_ability_id: number[]; backup_ability_id: number[] }
 
-export type Quality = "Normal" | "Fine" | "Superior" | "Epic" | "Legendary" | "Mythic" | "Arcane"
+export type WeaponEnchant = { type: WeaponEnchantType; level: EquipmentLevel; quality: Quality }
 
-export type PoisonEnchant = { type: PoisonEnchantType; level: EquipmentLevel; quality: Quality }
+export type EquipmentBody = { id: number; level: EquipmentLevel; trait: ArmorTrait; display_quality: Quality; set_id: number; enchant: ArmorEnchant | null }
 
 export type PowerType = "Adrenaline" | "Charges" | "Combo" | "Fervor" | "Finesse" | "Health" | "Invalid" | "Magicka" | "Momentum" | "MountStamina" | "Power" | "Stamina" | "Ultimate" | "Werewolf"
 
 export type CombatEvent = { action_result: ActionResult; damage_type: DamageType; power_type: PowerType; hit_value: number; overflow: number; cast_track_id: number; ability_id: number; source: UnitState; target: Targets }
 
-export type PoisonEnchantType = "Invalid"
+export type EffectBarDisplayBehaviour = "Default" | "Never" | "Always"
 
 export type ActionResult = "AbilityOnCooldown" | "Absorbed" | "BadTarget" | "Bladeturn" | "Blocked" | "BlockedDamage" | "Busy" | "CannotUse" | "CantSeeTarget" | "CantSwapHotbarIsOverridden" | "CantSwapWhileChangingGear" | "CasterDead" | "Charmed" | "CriticalDamage" | "CriticalHeal" | "Damage" | "DamageShielded" | "Defended" | "Died" | "DiedCompanionXp" | "DiedXp" | "Disarmed" | "Disoriented" | "Dodged" | "DotTick" | "DotTickCritical" | "Failed" | "FailedRequirements" | "FailedSiegeCreationRequirements" | "Falling" | "FallDamage" | "Feared" | "GraveyardDisallowedInInstance" | "GraveyardTooClose" | "Heal" | "HealAbsorbed" | "HotTick" | "HotTickCritical" | "Immune" | "InsufficientResource" | "Intercepted" | "Interrupt" | "Invalid" | "InvalidFixture" | "InvalidJusticeTarget" | "InvalidTerrain" | "InAir" | "InCombat" | "InEnemyKeep" | "InEnemyOutpost" | "InEnemyResource" | "InEnemyTown" | "InHideyhole" | "KilledByDaedricWeapon" | "KilledBySubzone" | "KillingBlow" | "Knockback" | "Levitated" | "MercenaryLimit" | "Miss" | "MissingEmptySoulGem" | "MissingFilledSoulGem" | "MobileGraveyardLimit" | "Mounted" | "MustBeInOwnKeep" | "NotEnoughInventorySpace" | "NotEnoughInventorySpaceSoulGem" | "NotEnoughSpaceForSiege" | "NoLocationFound" | "NoRamAttackableTargetWithinRange" | "NoWeaponsToSwapTo" | "NpcTooClose" | "Offbalance" | "Pacified" | "Parried" | "PartialResist" | "PowerDrain" | "PowerEnergize" | "PreciseDamage" | "Queued" | "RamAttackableTargetsAllDestroyed" | "RamAttackableTargetsAllOccupied" | "Recalling" | "Reflected" | "Reincarnating" | "Resist" | "Resurrect" | "Rooted" | "SelfPlayingTribute" | "SiegeLimit" | "SiegeNotAllowedInZone" | "SiegeTooClose" | "Silenced" | "Snared" | "SoulGemResurrectionAccepted" | "Sprinting" | "Staggered" | "Stunned" | "Swimming" | "TargetDead" | "TargetNotInView" | "TargetNotPvpFlagged" | "TargetOutOfRange" | "TargetPlayingTribute" | "TargetTooClose" | "UnevenTerrain" | "Weaponswap" | "WreckingDamage" | "WrongWeapon"
 
+export type EquipmentPoison = { id: number; level: EquipmentLevel; trait: PoisonTrait; display_quality: Quality; set_id: number; enchant: PoisonEnchant | null }
+
+export type BeginTrial = { id: Trial; start_time_ms: string }
+
+export type JewelEnchantType = "IncreaseSpellDamage" | "MagickaRegen" | "ReduceSpellCost" | "StaminaRegen" | "ReduceFeatCost" | "HealthRegen" | "IncreasePhysicalDamage" | "ReduceBlockAndBash" | "Invalid"
+
 export type PlayerReaction = "PlayerAlly" | "Friendly" | "Companion" | "NpcAlly" | "Neutral" | "Hostile"
 
-export type JewelTrait = "Arcane" | "Health" | "Robust" | "Harmony" | "Infused" | "Bloodthirsty" | "Protective" | "Swift" | "Triune"
-
-export type EquipmentWeapon = { id: number; level: EquipmentLevel; trait: WeaponTrait; display_quality: Quality; set_id: number; enchant: WeaponEnchant | null }
-
-export type PlayerInfo = { unit_id: number; long_term_effect: Effect[]; equipment_info: Equipment; primary_ability_id: number[]; backup_ability_id: number[] }
+export type JewelTrait = "Arcane" | "Healthy" | "Robust" | "Harmony" | "Infused" | "Bloodthirsty" | "Protective" | "Swift" | "Triune"
 
 export type BeginCast = { duration_ms: number; channeled: boolean; cast_track_id: number; ability_id: number; source: UnitState; target: Targets }
+
+export type WeaponEnchantType = "AbsorbMagicka" | "Berserker" | "Crusher" | "Weakening" | "FieryWeapon" | "PoisonedWeapon" | "AbsorbHealth" | "AbsorbStamina" | "ChargedWeapon" | "BefouledWeapon" | "Invalid"
+
+export type PoisonEnchantType = "Invalid"
+
+export type ArmorEnchantType = "Health" | "Magicka" | "Stamina" | "PrismaticDefense" | "Invalid"
 
 export type EquipmentLevel = { NoCp: number } | { Cp: number }
 
 export type ZoneInfo = { id: number; name: string; dungeon_difficulty: DungeonDifficulty }
 
+export type Class = "Arcanist" | "Templar" | "DragonKnight" | "Sorcerer" | "Necromancer" | "Warden" | "NightBlade" | "None"
+
+export type TauRpcApiOutputTypes = { proc_name: "poll_state"; output_type: ParserState } | { proc_name: "upload"; output_type: null } | { proc_name: "get_trial_count"; output_type: number } | { proc_name: "get_segment"; output_type: SegmentType } | { proc_name: "get_trials"; output_type: ([BeginTrial, EndTrial | null])[] }
+
 export type AbilityInfo = { ability_id: number; name: string; icon_path: string; interruptible: boolean; blockable: boolean }
 
 export type DamageType = "Bleed" | "Cold" | "Disease" | "Drown" | "Earth" | "Fire" | "Generic" | "Magic" | "None" | "Oblivion" | "Physical" | "Poison" | "Shock"
 
-export type EffectInfo = { ability_id: number; effect_type: EffectType; status_effect_type: StatusEffectType; effect_bar_display_behaviour: EffectBarDisplayBehaviour; grants_synergy_ability_id: number | null }
+export type Targets = "SelfTarget" | { Target: UnitState } | "None"
 
-export type JewelEnchant = { type: JewelEnchantType; level: EquipmentLevel; quality: Quality }
-
-export type TauRpcApiInputTypes = { proc_name: "poll_state"; input_type: null } | { proc_name: "upload"; input_type: { __taurpc_type: string } } | { proc_name: "get_trial_count"; input_type: null } | { proc_name: "get_segment"; input_type: null }
-
-export type WeaponEnchant = { type: WeaponEnchantType; level: EquipmentLevel; quality: Quality }
+export type ArmorEnchant = { type: ArmorEnchantType; level: EquipmentLevel; quality: Quality }
 
 export type WeaponTrait = "Charged" | "Defending" | "Infused" | "Nirnhoned" | "Powered" | "Precise" | "Sharpened" | "Training" | "Decisive"
 
+export type EquipmentWeapon = { id: number; level: EquipmentLevel; trait: WeaponTrait; display_quality: Quality; set_id: number; enchant: WeaponEnchant | null }
+
 export type DungeonDifficulty = "Normal" | "Veteran"
 
-export type Race = "DarkElf" | "Khajit" | "HighElf" | "WoodElf" | "Nord" | "Redguard" | "Breton" | "Argonian" | "Orc" | "Imperial" | "None"
+export type PoisonEnchant = { type: PoisonEnchantType; level: EquipmentLevel; quality: Quality }
+
+export type EquipmentJewel = { id: number; level: EquipmentLevel; trait: JewelTrait; display_quality: Quality; set_id: number; enchant: JewelEnchant | null }
 
 export type BeginLog = { time_since_epoch_s: number; log_version: number; realm_name: string; language: string; game_version: string }
 
 export type HealthRegen = { effective_regen: number; source: UnitState }
 
-export type WeaponEnchantType = "AbsorbMagicka" | "Berserker" | "Crusher" | "Weakening" | "FieryWeapon" | "PoisonedWeapon" | "AbsorbHealth" | "AbsorbStamina" | "ChargedWeapon" | "Invalid"
-
-export type JewelEnchantType = "IncreaseSpellDamage" | "MagickaRegen" | "ReduceSpellCost" | "StaminaRegen" | "ReduceFeatCost" | "HealthRegen" | "IncreasePhysicalDamage" | "ReduceBlockAndBash" | "Invalid"
-
 export type ArmorTrait = "Divines" | "Invigorating" | "Impenetrable" | "Infused" | "Nirnhoned" | "Reinforced" | "Sturdy" | "WellFitted" | "Training" | "None"
 
 export type PoisonTrait = "None"
 
-const ARGS_MAP = {"":"{\"get_segment\":[],\"poll_state\":[],\"upload\":[\"path\"],\"get_trial_count\":[]}"}
+const ARGS_MAP = {"":"{\"upload\":[\"path\"],\"get_trials\":[],\"get_segment\":[],\"poll_state\":[],\"get_trial_count\":[]}"}
 import { createTauRPCProxy as createProxy } from "taurpc"
 
 export const createTauRPCProxy = () => createProxy<Router>(ARGS_MAP)

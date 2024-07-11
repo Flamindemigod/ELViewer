@@ -110,6 +110,7 @@ impl Lexer {
                         "NORMAL" => DungeonDifficulty::Normal,
                         _ => DungeonDifficulty::Normal,
                     };
+                    println!("Zone: {id} {name} {mode:#?}");
                     SegmentType::ZoneInfo(ZoneInfo {
                         id,
                         name,
@@ -154,7 +155,7 @@ impl Lexer {
                     })
                 }
                 "TRIAL_INIT" => {
-                    let id = tokens.pop_front().unwrap();
+                    let id = tokens.pop_front().unwrap().into();
                     let in_progress = parse_bool(&tokens.pop_front().unwrap());
                     let completed = parse_bool(&tokens.pop_front().unwrap());
                     let start_time_ms = tokens.pop_front().unwrap();
@@ -163,7 +164,7 @@ impl Lexer {
                     let final_score = tokens.pop_front().unwrap();
 
                     SegmentType::TrialInit(Trialinit {
-                        id: id.parse().unwrap(),
+                        id,
                         in_progress,
                         completed,
                         start_time_ms: start_time_ms.parse().unwrap(),
@@ -322,13 +323,12 @@ impl Lexer {
                     })
                 }
                 "BEGIN_TRIAL" => {
-                    let id = tokens.pop_front().unwrap().parse().unwrap();
+                    let id = tokens.pop_front().unwrap().into();
                     let start_time_ms = tokens.pop_front().unwrap();
-
                     SegmentType::BeginTrial(BeginTrial { id, start_time_ms })
                 }
                 "END_TRIAL" => {
-                    let id = tokens.pop_front().unwrap().parse().unwrap();
+                    let id = tokens.pop_front().unwrap().into();
                     let duration_ms = tokens.pop_front().unwrap().parse().unwrap();
                     let success = parse_bool(&tokens.pop_front().unwrap());
                     let final_score = tokens.pop_front().unwrap().parse().unwrap();
@@ -416,6 +416,11 @@ impl Lexer {
                             }
                             "POISON" => {
                                 equipment_info.main_poison = Some(
+                                    EquipmentPoison::parse_equipment(&mut equipment_piece_tokens),
+                                );
+                            }
+                            "BACKUP_POISON" => {
+                                equipment_info.backup_poison = Some(
                                     EquipmentPoison::parse_equipment(&mut equipment_piece_tokens),
                                 );
                             }

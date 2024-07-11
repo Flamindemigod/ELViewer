@@ -421,6 +421,7 @@ pub enum StatusEffectType {
     Bleed,
     Poison,
     Environment,
+    Disease,
 }
 
 impl From<String> for StatusEffectType {
@@ -433,6 +434,7 @@ impl From<String> for StatusEffectType {
             "BLEED" => Self::Bleed,
             "POISON" => Self::Poison,
             "ENVIRONMENT" => Self::Environment,
+            "DISEASE" => Self::Disease,
             x => unimplemented!("{x} Status Effect Type is not implemented"),
         }
     }

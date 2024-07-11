@@ -12,7 +12,7 @@ use super::{
 #[derive(Debug)]
 #[taurpc::ipc_type]
 pub struct BeginLog {
-    pub time_since_epoch_s: u32, 
+    pub time_since_epoch_s: u32,
     pub log_version: u32,
     pub realm_name: String,
     pub language: String,
@@ -40,13 +40,44 @@ pub struct ZoneInfo {
     pub dungeon_difficulty: DungeonDifficulty,
 }
 
+#[derive(Debug, Serialize, Deserialize, Type, Clone, Eq, PartialEq)]
+pub enum Trial {
+    KynesAegis,
+    SanitysEdge,
+    LucentCitadel,
+    DreadsailReef,
+    Rockgrove,
+    Sunspire,
+    Cloudrest,
+    AsylumSanctorium,
+    HallsOfFabrication,
+    MawOfLorkhaj,
+}
+impl From<String> for Trial {
+    fn from(value: String) -> Self {
+        match value.as_str() {
+            "13" => Self::KynesAegis,
+            "18" => Self::LucentCitadel,
+            "17" => Self::SanitysEdge,
+            "16" => Self::DreadsailReef,
+            "15" => Self::Rockgrove,
+            "12" => Self::Sunspire,
+            "9" => Self::Cloudrest,
+            "8" => Self::AsylumSanctorium,
+            "7" => Self::HallsOfFabrication,
+            "5" => Self::MawOfLorkhaj,
+            x => unimplemented!("{x} Trial ID is not implemented"),
+        }
+    }
+}
+
 #[derive(Debug)]
 #[taurpc::ipc_type]
 pub struct Trialinit {
-    pub id: u8,
+    pub id: Trial,
     pub in_progress: bool,
     pub completed: bool,
-    pub start_time_ms: u32,
+    pub start_time_ms: String, //BigInt Stored as String due to IPC limitations
     pub duration_ms: u32,
     pub success: bool,
     pub final_score: u32,
@@ -55,18 +86,18 @@ pub struct Trialinit {
 #[derive(Debug)]
 #[taurpc::ipc_type]
 pub struct BeginTrial {
-    pub id: u8,
+    pub id: Trial,
     pub start_time_ms: String, //BigInt Stored as String due to IPC limitations
 }
 
 #[derive(Debug)]
 #[taurpc::ipc_type]
 pub struct EndTrial {
-    pub id: u8,
+    pub id: Trial,
     pub duration_ms: u32,
     pub success: bool,
     pub final_score: u32,
-    pub final_vitality_bonus: u8,
+    pub final_vitality_bonus: u16,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
@@ -95,6 +126,7 @@ pub enum SegmentType {
     EndlessDungeonBuffAdd,
     EndlessDungeonStageEnd,
 }
+
 #[derive(Debug)]
 pub struct Segment {
     pub time: usize, // Time Since Logging Began in MS

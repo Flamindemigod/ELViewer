@@ -190,7 +190,7 @@ pub enum ArmorTrait {
 #[derive(Debug, Serialize, Deserialize, Type, Clone)]
 pub enum JewelTrait {
     Arcane,
-    Health,
+    Healthy,
     Robust,
     Harmony,
     Infused,
@@ -222,6 +222,8 @@ impl From<String> for ArmorTrait {
             "ARMOR_TRAINING" => Self::Training,
             "ARMOR_WELL_FITTED" => Self::WellFitted,
             "ARMOR_STURDY" => Self::Sturdy,
+            "ARMOR_IMPENETRABLE" => Self::Impenetrable,
+            "ARMOR_NIRNHONED" => Self::Nirnhoned,
             "NONE" => Self::None,
             x => unimplemented!("{x} trait is not implemented"),
         }
@@ -236,6 +238,7 @@ impl From<String> for JewelTrait {
             "JEWELRY_ROBUST" => Self::Robust,
             "JEWELRY_SWIFT" => Self::Swift,
             "JEWELRY_HARMONY" => Self::Harmony,
+            "JEWELRY_HEALTHY" => Self::Healthy,
             x => unimplemented!("{x} trait is not implemented"),
         }
     }
@@ -249,6 +252,8 @@ impl From<String> for WeaponTrait {
             "WEAPON_PRECISE" => Self::Precise,
             "WEAPON_CHARGED" => Self::Charged,
             "WEAPON_DECISIVE" => Self::Decisive,
+            "WEAPON_SHARPENED" => Self::Sharpened,
+            "WEAPON_DEFENDING" => Self::Defending,
             x => unimplemented!("{x} trait is not implemented"),
         }
     }
@@ -307,6 +312,7 @@ pub enum WeaponEnchantType {
     AbsorbHealth,
     AbsorbStamina,
     ChargedWeapon,
+    BefouledWeapon,
     Invalid,
 }
 #[derive(Debug, Serialize, Deserialize, Type, Clone)]
@@ -370,6 +376,7 @@ impl EnchantMarker for WeaponEnchantType {
             "ABSORB_STAMINA" => Some(Self::AbsorbStamina),
             "CHARGED_WEAPON" => Some(Self::ChargedWeapon),
             "REDUCE_POWER" => Some(Self::Weakening),
+            "BEFOULED_WEAPON" => Some(Self::BefouledWeapon),
             "INVALID" => Some(Self::Invalid),
             x => unimplemented!("{x} enchant is not implemented"),
         }
