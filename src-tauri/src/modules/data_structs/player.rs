@@ -239,6 +239,7 @@ impl From<String> for JewelTrait {
             "JEWELRY_SWIFT" => Self::Swift,
             "JEWELRY_HARMONY" => Self::Harmony,
             "JEWELRY_HEALTHY" => Self::Healthy,
+            "JEWELRY_TRIUNE" => Self::Triune,
             x => unimplemented!("{x} trait is not implemented"),
         }
     }
@@ -325,6 +326,7 @@ pub enum JewelEnchantType {
     HealthRegen,
     IncreasePhysicalDamage,
     ReduceBlockAndBash,
+    ReducePotionCooldown,
     Invalid,
 }
 #[derive(Debug, Serialize, Deserialize, Type, Clone)]
@@ -359,6 +361,7 @@ impl EnchantMarker for JewelEnchantType {
             "HEALTH_REGEN" => Some(Self::HealthRegen),
             "INCREASE_PHYSICAL_DAMAGE" => Some(Self::IncreasePhysicalDamage),
             "REDUCE_BLOCK_AND_BASH" => Some(Self::ReduceBlockAndBash),
+            "REDUCE_POTION_COOLDOWN" => Some(Self::ReducePotionCooldown),
             "INVALID" => Some(Self::Invalid),
             x => unimplemented!("{x} enchant is not implemented"),
         }
