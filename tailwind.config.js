@@ -3,6 +3,9 @@ export default {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
+      backgroundSize: {
+        "500%": "500%",
+      },
       keyframes: {
         sway: {
           "0%": { rotate: "0" },

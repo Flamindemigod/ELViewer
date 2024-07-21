@@ -3,13 +3,9 @@
 #![allow(non_snake_case)]
 
 use memmap::Mmap;
-use modules::{
-    data_structs::log::{BeginTrial, EndTrial, Segment, SegmentType, Trialinit, ZoneInfo},
-    parser::Lexer,
-};
+use modules::{log::{data_structs::zone::Trial, log::Log}, parser::Lexer};
 use serde::{Deserialize, Serialize};
 use std::{
-    collections::BTreeMap,
     fs::File,
     io::BufRead,
     path::PathBuf,
@@ -36,104 +32,47 @@ impl Default for ParserState {
 trait Api {
     async fn poll_state() -> ParserState;
     async fn upload(path: PathBuf);
-    async fn get_trial_count() -> u32;
-    async fn get_segment() -> SegmentType;
-    async fn get_trials() -> Vec<(BeginTrial, Option<EndTrial>)>;
+    async fn get_trials() -> Vec<Trial>;
+    async fn get_log_start() -> u32;
+    async fn test() -> Vec<Log>;
 }
 
 #[derive(Clone, Default)]
 struct ApiImpl {
     state: Arc<Mutex<ParserState>>,
-    segments: Arc<Mutex<Option<Vec<Segment>>>>,
-    zone_info_segments: Arc<Mutex<BTreeMap<usize, ZoneInfo>>>,
-    trial_begin_segments: Arc<Mutex<BTreeMap<usize, BeginTrial>>>,
-    trial_init_segments: Arc<Mutex<BTreeMap<usize, Trialinit>>>,
-    trial_end_segments: Arc<Mutex<BTreeMap<usize, EndTrial>>>,
+    logs: Arc<Mutex<Vec<Log>>>,
 }
 
 #[taurpc::resolvers]
 impl Api for ApiImpl {
+        async fn test(self) -> Vec<Log>{
+            self.logs.lock().unwrap().clone()
+        }
+
     async fn upload(self, path: PathBuf) {
         let file = File::open(path).unwrap();
         let mapped_file = unsafe { Mmap::map(&file).unwrap() };
         let mut lexer = Lexer::new(mapped_file.lines());
-        let seg_len = lexer.get_len();
-        let mut seg_array: Vec<Segment> = Vec::new();
-        let mut zone_segs: BTreeMap<usize, ZoneInfo> = BTreeMap::new();
-        let mut trial_begin_segs: BTreeMap<usize, BeginTrial> = BTreeMap::new();
-        let mut trial_init_segs: BTreeMap<usize, Trialinit> = BTreeMap::new();
-        let mut trial_end_segs: BTreeMap<usize, EndTrial> = BTreeMap::new();
-        let mut count = 0;
-        while let Some(segment) = lexer.next_segment() {
-            count += 1;
-            *self.state.lock().unwrap() = ParserState::Processing(count as f64 / seg_len as f64);
-
-            match segment.line {
-                SegmentType::ZoneInfo(x) => {
-                    let _ = zone_segs.insert(segment.time, x);
-                }
-                SegmentType::TrialInit(x) => {
-                    let _ = trial_init_segs.insert(segment.time, x);
-                }
-
-                SegmentType::BeginTrial(x) => {
-                    let _ = trial_begin_segs.insert(segment.time, x);
-                }
-
-                SegmentType::EndTrial(x) => {
-                    let _ = trial_end_segs.insert(segment.time, x);
-                }
-
-                _ => seg_array.push(segment),
-            };
-        }
-        *self.segments.lock().unwrap() = Some(seg_array);
-        *self.zone_info_segments.lock().unwrap() = zone_segs;
-        *self.trial_begin_segments.lock().unwrap() = trial_begin_segs;
-        *self.trial_init_segments.lock().unwrap() = trial_init_segs;
-        *self.trial_end_segments.lock().unwrap() = trial_end_segs;
+        self.logs.lock().unwrap().clear();
+        self.logs.lock().unwrap().push(*Log::init(&mut lexer, self.state.clone()).unwrap());
         *self.state.lock().unwrap() = ParserState::Processed;
+        // println!("Log: {:#?}", self.logs.lock().unwrap());
+        drop(lexer);
+        drop(mapped_file);
+        drop(file);
+        println!("Parsed Log");
     }
+
 
     async fn poll_state(self) -> ParserState {
         self.state.lock().unwrap().clone()
     }
 
-    async fn get_trial_count(self) -> u32 {
-        let segs = self.segments.lock().unwrap();
-        segs.as_ref()
-            .unwrap()
-            .iter()
-            .filter(|f| matches!(f.line, SegmentType::BeginTrial(_)))
-            .count() as u32
+    async fn get_trials(self) -> Vec<Trial> {
+        self.logs.lock().unwrap().iter().flat_map(|f| f.zones.iter().filter_map(|z| z.trial.clone())).collect()
     }
-    async fn get_segment(self) -> SegmentType {
-        todo!("Just a type check thing")
-    }
-
-    async fn get_trials(self) -> Vec<(BeginTrial, Option<EndTrial>)> {
-        // self.trial_end_segments
-        //     .lock()
-        //     .unwrap()
-        //     .values()
-        //     .map(|f| f.to_owned())
-        //     .collect::<Vec<_>>()
-        self.trial_begin_segments
-            .lock()
-            .unwrap()
-            .iter()
-            .map(|(k, v)| {
-                (
-                    v.to_owned(),
-                    self.trial_end_segments
-                        .lock()
-                        .unwrap()
-                        .iter().skip_while(|(zk, _)| *zk <= k)
-                        .find_map(|(_, zv)| if zv.id == v.id {Some(zv.to_owned())} else {None})
-                        .take()
-                )
-            })
-            .collect()
+    async fn get_log_start(self) -> u32 {
+        self.logs.lock().unwrap().first().unwrap().start.time_since_epoch_s
     }
 }
 
